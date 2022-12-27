@@ -191,8 +191,9 @@ func (s *ServeMux) Handle(meth string, pat Pattern, h HandlerFunc) {
 // ServeHTTP dispatches the request to the first handler whose pattern matches to r.Method and r.Path.
 func (s *ServeMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
-	defer fmt.Printf("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ ServeHTTP took: %dms\n", time.Now().UnixMilli()-start.UnixMilli())
 	ctx := r.Context()
+
+	fmt.Printf("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ ServeHTTP elapsed 1: %dms\n", time.Now().UnixMilli()-start.UnixMilli())
 
 	path := r.URL.Path
 	if !strings.HasPrefix(path, "/") {
@@ -205,6 +206,8 @@ func (s *ServeMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
+
+	fmt.Printf("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ ServeHTTP elapsed 2: %dms\n", time.Now().UnixMilli()-start.UnixMilli())
 
 	components := strings.Split(path[1:], "/")
 	l := len(components)
@@ -222,6 +225,8 @@ func (s *ServeMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		components[l-1], verb = c[:idx], c[idx+1:]
 	}
 
+	fmt.Printf("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ ServeHTTP elapsed 3: %dms\n", time.Now().UnixMilli()-start.UnixMilli())
+
 	if override := r.Header.Get("X-HTTP-Method-Override"); override != "" && s.isPathLengthFallback(r) {
 		r.Method = strings.ToUpper(override)
 		if err := r.ParseForm(); err != nil {
@@ -235,6 +240,8 @@ func (s *ServeMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+	fmt.Printf("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ ServeHTTP elapsed 4: %dms\n", time.Now().UnixMilli()-start.UnixMilli())
+
 	for _, h := range s.handlers[r.Method] {
 		pathParams, err := h.pat.Match(components, verb)
 		if err != nil {
@@ -243,6 +250,8 @@ func (s *ServeMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.h(w, r, pathParams)
 		return
 	}
+
+	fmt.Printf("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ ServeHTTP elapsed 5: %dms\n", time.Now().UnixMilli()-start.UnixMilli())
 
 	// lookup other methods to handle fallback from GET to POST and
 	// to determine if it is MethodNotAllowed or NotFound.
@@ -280,12 +289,16 @@ func (s *ServeMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	fmt.Printf("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ ServeHTTP elapsed 6: %dms\n", time.Now().UnixMilli()-start.UnixMilli())
+
 	if s.protoErrorHandler != nil {
 		_, outboundMarshaler := MarshalerForRequest(s, r)
 		s.protoErrorHandler(ctx, s, outboundMarshaler, w, r, ErrUnknownURI)
 	} else {
 		OtherErrorHandler(w, r, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 	}
+
+	fmt.Printf("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ ServeHTTP elapsed 7: %dms\n", time.Now().UnixMilli()-start.UnixMilli())
 }
 
 // GetForwardResponseOptions returns the ForwardResponseOptions associated with this ServeMux.
