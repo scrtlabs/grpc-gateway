@@ -248,6 +248,7 @@ func (s *ServeMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		h.h(w, r, pathParams)
+		fmt.Printf("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ ServeHTTP elapsed 5: %dms\n", time.Now().UnixMilli()-start.UnixMilli())
 		return
 	}
 
