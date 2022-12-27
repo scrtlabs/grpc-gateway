@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/textproto"
 	"strings"
+	"time"
 
 	"github.com/golang/protobuf/proto"
 	"google.golang.org/grpc/codes"
@@ -189,6 +190,8 @@ func (s *ServeMux) Handle(meth string, pat Pattern, h HandlerFunc) {
 
 // ServeHTTP dispatches the request to the first handler whose pattern matches to r.Method and r.Path.
 func (s *ServeMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	defer fmt.Printf("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ ServeHTTP took: %dms\n", time.Now().UnixMilli()-start.UnixMilli())
 	ctx := r.Context()
 
 	path := r.URL.Path
